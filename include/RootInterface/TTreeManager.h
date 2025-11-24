@@ -101,17 +101,11 @@ namespace Task {
             TTree *tree;
 
             details::TriggerEntry trigger;
-            details::DetectorEntries deDet;
-            details::DetectorEntries eDet;
-            details::DetectorEntries ppacDet;
             details::DetectorEntries labrDet;
 
             details::DetectorEntries *GetDet(const DetectorType &type){
                 switch ( type ) {
                     case DetectorType::labr : return &labrDet;
-                    case DetectorType::deDet : return &deDet;
-                    case DetectorType::eDet : return &eDet;
-                    case DetectorType::ppac : return &ppacDet;
                     default : return nullptr;
                 }
             }
@@ -123,9 +117,6 @@ namespace Task {
                     : file( TFile(fname, "RECREATE") )
                     , tree( new TTree("ocl_events", "OCL events") )
                     , trigger( *tree )
-                    , deDet( *tree, "deDet" )
-                    , eDet( *tree, "eDet" )
-                    , ppacDet( *tree, "ppac" )
                     , labrDet( *tree, "labr" )
             {
                 tree->SetDirectory(&file);
@@ -141,12 +132,10 @@ namespace Task {
                 // Get the lock...
                 if ( event.GetTrigger() )
                     trigger.Fill(event.GetTrigger());
-                for ( auto &type : {DetectorType::labr, /*DetectorType::deDet,*/ DetectorType::eDet, DetectorType::ppac} ){
+                for ( auto &type : {DetectorType::labr} ){
                     GetDet(type)->reset();
                     GetDet(type)->Fill(event.GetDetector(type), event.GetTrigger());
                 }
-                GetDet(DetectorType::deDet)->reset();
-                GetDet(DetectorType::deDet)->Fill(event.GetDetector(DetectorType::deDet), event.GetTrigger());
 
                 tree->Fill();
             }

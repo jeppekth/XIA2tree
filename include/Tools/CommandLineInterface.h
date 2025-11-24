@@ -31,11 +31,11 @@ namespace CLI {
         std::optional<std::string> CalibrationFile;
         std::optional<std::string> RangeFile;
         std::optional<std::string> userSort;
-        std::optional<double> coincidenceTime = 1500;
+        std::optional<double> coincidenceTime = 100;
         std::optional<double> SplitTime = 1500;
         std::optional<bool> tree = false;
         std::optional<sort_type> sortType = sort_type::coincidence;
-        std::optional<DetectorType> Trigger = DetectorType::eDet;
+        std::optional<DetectorType> Trigger = DetectorType::labr;
     };
 
     Options ParseCLA(const int &argc, char *argv[]);

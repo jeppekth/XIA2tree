@@ -44,14 +44,14 @@ namespace OCL {
             enum DetectorType type;
             size_t detectorID;
 
-            double quad, gain, shift;
+            double cube, quad, gain, shift;
             double cfd_shift;
             long long timestamp_shift;
 
             [[nodiscard]] inline double CalibrateEnergy(const unsigned short &channel) const
             {
                 double ch = channel + (drand48() - 0.5);
-                return quad*ch*ch + gain*ch + shift;
+                return cube*ch*ch*ch + quad*ch*ch + gain*ch + shift;
             }
 
             [[nodiscard]] inline XIA::XIA_CFD_t CalibrateCFD(const unsigned short &channel) const
@@ -71,9 +71,6 @@ namespace OCL {
             auto type = dinfo.at(xia->index()).type;
             switch ( type ) {
                 case labr:
-                case deDet:
-                case eDet:
-                case ppac:
                     return true;
                 default:
                     return false;

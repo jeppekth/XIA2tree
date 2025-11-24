@@ -41,41 +41,15 @@ namespace Task {
 
     };
 
-    struct Particle_telescope_t
-    {
-        ThreadSafeHistogram2D ede_spectra[NUM_SI_DE_TEL];
-        ThreadSafeHistogram2D ede_spectra_raw[NUM_SI_DE_TEL];
-
-        Particle_telescope_t(ThreadSafeHistograms &hist, const size_t &num);
-        void Fill(const subvector<Entry_t> &deltaE, const subvector<Entry_t> &E);
-        void Fill(const std::vector<Entry_t> &deltaE, const std::vector<Entry_t> &E);
-        void Flush();
-    };
-
     class HistManager {
     private:
         const OCL::UserConfiguration configuration;
 
         Detector_Histograms_t labr;
-        Detector_Histograms_t si_de;
-        Detector_Histograms_t si_e;
-        Detector_Histograms_t ppacs;
-
-        //! Time energy spectra for particles.
-        Particle_telescope_t particle_coincidence[NUM_SI_E_DET]; // Sorted by back number
-
-        ThreadSafeHistogram2D ede_spectra[NUM_SI_DE_TEL];
-        ThreadSafeHistogram2D ede_time;
-        ThreadSafeHistogram2D thickness;
-        ThreadSafeHistogram2D particle_energy;
-        ThreadSafeHistogram2D alfna_prompt, alfna_background;
-        ThreadSafeHistogram2D ts_ex_above_Sn;
-        ThreadSafeHistogram2D mult_ex;
 
         UserSortManager userSort;
 
         Detector_Histograms_t *GetSpec(const DetectorType &type);
-        inline Particle_telescope_t *GetPart(const size_t &num){ return ( num < NUM_SI_DE_TEL ) ? particle_coincidence+num : nullptr; }
 
     public:
         HistManager(ThreadSafeHistograms &histograms, const OCL::UserConfiguration &configuration,

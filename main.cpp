@@ -120,9 +120,9 @@ int main(int argc, char *argv[])
     if ( files.size() == 1 ) // Do nothing. No files to merge.
         return 0;
     else if ( files.size() > 1 ) {
-        auto spinner = progress.FinishSort(options.output.value());
+        // auto spinner = progress.FinishSort(options.output.value());
         MergeFiles(options.output.value(), files);
-        spinner.Finish();
+        // spinner.Finish();
     } else if ( files.empty() )
         return 1;
     return 0;

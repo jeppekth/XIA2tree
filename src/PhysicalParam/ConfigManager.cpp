@@ -127,6 +127,7 @@ ConfigManager::ConfigManager(const YAML::Node &setup)
                 auto type = channel["type"].as<DetectorType>();
                 auto num = channel["detectorID"].as<size_t>();
 
+                auto cube = setup["calibration"][std::string(magic_enum::enum_name(type))]["cube"][num].as<double>();
                 auto quad = setup["calibration"][std::string(magic_enum::enum_name(type))]["quad"][num].as<double>();
                 auto gain = setup["calibration"][std::string(magic_enum::enum_name(type))]["gain"][num].as<double>();
                 auto shift = setup["calibration"][std::string(magic_enum::enum_name(type))]["shift"][num].as<double>();
@@ -136,6 +137,7 @@ ConfigManager::ConfigManager(const YAML::Node &setup)
                                   freq,
                                   type,
                                   num,
+                                  cube,
                                   quad,
                                   gain,
                                   shift,

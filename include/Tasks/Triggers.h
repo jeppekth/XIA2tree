@@ -19,7 +19,7 @@ namespace Task {
         const DetectorType trigger;
 
     public:
-        Trigger_worker(MCWordQueue_t &input, TEWordQueue_t &output, const double &time = 1500., const DetectorType &trigger = DetectorType::eDet);
+        Trigger_worker(MCWordQueue_t &input, TEWordQueue_t &output, const double &time = 1500., const DetectorType &trigger = DetectorType::labr);
         void Run() override;
 
     };
@@ -31,7 +31,7 @@ namespace Task {
         TEWordQueue_t output_queue;
         std::vector<Trigger_worker *> triggers;
     public:
-        Triggers(MCWordQueue_t &input, const size_t &workers = 4, const double &time = 1500., const DetectorType &trigger = DetectorType::eDet, const size_t &cap = 65536);
+        Triggers(MCWordQueue_t &input, const size_t &workers = 4, const double &time = 1500., const DetectorType &trigger = DetectorType::labr, const size_t &cap = 65536);
         ~Triggers();
         TEWordQueue_t &GetQueue(){ return output_queue; }
 
