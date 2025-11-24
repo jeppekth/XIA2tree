@@ -63,6 +63,7 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
         user_sort = options.userSort->c_str();
 
     Task::Sorters sorters(triggers.GetQueue(), userConfig, ( tree_file.empty() ) ? nullptr : tree_file.c_str(), user_sort);
+    Task::TreeWriter *writer = sorters.GetNewTreeWriter();
 
     ThreadPool<std::thread> pool;
     pool.AddTask(&reader);
@@ -71,10 +72,12 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     pool.AddTask(&splitter);
     pool.AddTask(triggers.GetNewTrigger());
 
-    for ( int i = 0 ; i < 4 ; ++i ){
+    for ( int i = 0 ; i < 8 ; ++i ){
         pool.AddTask(sorters.GetNewSorter());
     }
 
+    pool.AddTask(writer);
+ 
     try {
         pool.Wait();
     } catch ( const std::exception &ex ){
@@ -121,7 +124,7 @@ int main(int argc, char *argv[])
         return 0;
     else if ( files.size() > 1 ) {
         // auto spinner = progress.FinishSort(options.output.value());
-        MergeFiles(options.output.value(), files);
+        //MergeFiles(options.output.value(), files);
         // spinner.Finish();
     } else if ( files.empty() )
         return 1;

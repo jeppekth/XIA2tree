@@ -117,11 +117,10 @@ void HistManager::Flush()
     userSort.Flush();
 }
 
-MTSort::MTSort(TEventQueue_t &input, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config,
-               const char *tree_name, const char *user_sort)
+MTSort::MTSort(TEventQueue_t &input, TEventQueue_t &output, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config, const char *user_sort)
     : input_queue( input )
+    , output_queue ( output )
     , hm( histograms, config, user_sort )
-    , tree( ( tree_name ) ? new ROOT::TTreeManager(tree_name) : nullptr )
 {
 }
 
@@ -137,7 +136,8 @@ void MTSort::Run()
 
             Triggered_event event(entries.first, entries.first[entries.second]);
             hm.AddEntry(event);
-            if ( tree ) tree->Fill(event);
+            
+            while ( output_queue.try_enqueue(entries) ) if (done) break;    
         }
     }
     is_done = true;
@@ -156,7 +156,7 @@ Sorters::Sorters(TEventQueue_t &input, OCL::UserConfiguration &config, const cha
     , user_config( config )
     , user_sort_path( ( _user_sort ) ? _user_sort : "" )
     , tree_file_name( ( tree_name ) ? tree_name : "" )
-    , tree_files( )
+    , tree_files( {tree_file_name} )
 {
 
 }
@@ -177,14 +177,12 @@ void Sorters::flush()
 
 MTSort *Sorters::GetNewSorter()
 {
-    std::string fname = "";
-    if ( !tree_file_name.empty() ) {
-        fname = tree_file_name.substr(0, tree_file_name.find_last_of('.'));
-        fname += "_t" + std::to_string(tree_files.size()) + ".root";
-        tree_files.push_back(fname);
-    }
-    sorters.push_back(new MTSort(input_queue, histograms, user_config,
-                                 (fname.empty()) ? nullptr : fname.c_str(),
+    sorters.push_back(new MTSort(input_queue, output_queue, histograms, user_config,
                                  (user_sort_path.empty()) ? nullptr : user_sort_path.c_str()));
     return sorters.back();
+}
+
+TreeWriter *Sorters::GetNewTreeWriter()
+{
+    return new TreeWriter(output_queue, tree_file_name.c_str(), this);
 }

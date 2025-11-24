@@ -15,10 +15,13 @@
 #include "Task.h"
 #include "Queue.h"
 #include "event.h"
+#include "TTreeManager.h"
 
 class ParticleRange;
 
 namespace Task {
+
+    class Sorters;
 
     namespace ROOT {
         class TTreeManager;
@@ -76,21 +79,55 @@ namespace Task {
     {
     private:
         TEventQueue_t &input_queue;
+        TEventQueue_t &output_queue;
         HistManager hm;
         std::unique_ptr<ROOT::TTreeManager> tree;
 
     public:
-        MTSort(TEventQueue_t &input, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config,
-               const char *tree_name = nullptr, const char *user_sort = nullptr);
+        MTSort(TEventQueue_t &input, TEventQueue_t &output, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config,
+                const char *user_sort = nullptr);
         ~MTSort() override = default;
         void Run() override;
         void Flush();
+    };
+
+    class TreeWriter : public Base
+    {   
+    private:
+        TEventQueue_t &input_queue;
+        std::unique_ptr<ROOT::TTreeManager> tree;
+        bool sorting_finished = false;
+        Sorters *sorters;
+
+    public:
+        TreeWriter(TEventQueue_t &input, const char *tree_name = nullptr, Sorters *sorters = nullptr)  
+        : input_queue(input)
+        , tree(new ROOT::TTreeManager(tree_name))
+        , sorters(sorters)
+        {}
+        
+        void Run()
+        {
+            std::pair<std::vector<Entry_t>, size_t> entries;
+            while (!done)
+            {
+                if ( input_queue.wait_dequeue_timed(entries, std::chrono::seconds(1)) )
+                {
+                    Triggered_event event(entries.first, entries.first[entries.second]);
+                    tree->Fill(event);
+                }
+            }
+
+            is_done = true;
+        }
+
     };
 
     class Sorters
     {
     private:
         TEventQueue_t &input_queue;
+        TEventQueue_t output_queue;
         ThreadSafeHistograms histograms;
         std::vector<MTSort *> sorters;
         const OCL::UserConfiguration &user_config;
@@ -108,7 +145,15 @@ namespace Task {
         }
         [[nodiscard]] std::vector<std::string> GetTreeFiles() const { return tree_files; }
         MTSort *GetNewSorter();
+        TreeWriter *GetNewTreeWriter();
+
+        bool IsFinished()
+        {
+            for (MTSort * s : sorters) if (!s->check_status()) return false;
+            return true;
+        }
     };
+
 
 }
 

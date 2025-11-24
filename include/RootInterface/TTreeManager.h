@@ -5,6 +5,8 @@
 #ifndef TTREEMANAGER_H
 #define TTREEMANAGER_H
 
+#include <iostream>
+
 #include <TFile.h>
 #include <TTree.h>
 
@@ -12,7 +14,7 @@
 #include <event.h>
 
 #ifndef MAX_ENTRIES
-#define MAX_ENTRIES 128
+#define MAX_ENTRIES 12
 #endif // MAX_ENTRIES
 
 namespace Task {
@@ -66,8 +68,10 @@ namespace Task {
 
 
             inline void Fill(const subvector<Entry_t> &entries, const Entry_t *trigger = nullptr){
+
                 mult = 0;
                 for ( auto &entry : entries ){
+
                     ID[mult] = entry.detectorID;
                     finishflag[mult] = entry.finishflag;
                     adcvalue[mult] = entry.adcvalue;
@@ -81,7 +85,20 @@ namespace Task {
                         time[mult] = 0;
                     }
 
-                    for (int i = 0; i < 8; i++) qdc[mult][i] = entry.qdc.at(i);
+                    for (int i = 0; i < 8; i++) {
+                        
+                        int e;
+                        try
+                        {
+                            e = entry.qdc.at(i);
+                        }
+                        catch (const std::exception& exc)
+                        {
+                            std::cerr << exc.what() << std::endl;
+                            std::cerr << entry.qdc.size() << std::endl;
+                        }
+                        qdc[mult][i] = e;
+                    }
 
                     cfdfail[mult] = entry.cfdfail;
                     cfdcorr[mult++] = entry.cfdcorr;
