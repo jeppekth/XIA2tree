@@ -81,7 +81,6 @@ namespace Task {
         TEventQueue_t &input_queue;
         TEventQueue_t &output_queue;
         HistManager hm;
-        std::unique_ptr<ROOT::TTreeManager> tree;
 
     public:
         MTSort(TEventQueue_t &input, TEventQueue_t &output, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config,
@@ -146,12 +145,6 @@ namespace Task {
         [[nodiscard]] std::vector<std::string> GetTreeFiles() const { return tree_files; }
         MTSort *GetNewSorter();
         TreeWriter *GetNewTreeWriter();
-
-        bool IsFinished()
-        {
-            for (MTSort * s : sorters) if (!s->check_status()) return false;
-            return true;
-        }
     };
 
 
