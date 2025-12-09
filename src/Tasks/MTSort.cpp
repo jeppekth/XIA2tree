@@ -127,7 +127,9 @@ MTSort::MTSort(TEventQueue_t &input, TEventQueue_t &output, ThreadSafeHistograms
 void MTSort::Run()
 {
     std::pair<std::vector<Entry_t>, size_t> entries;
+
     while ( !done ){
+
         if ( input_queue.wait_dequeue_timed(entries, std::chrono::seconds(1)) ){
             if ( entries.second == -1 ){
                 Triggered_event event(entries.first);
@@ -136,8 +138,8 @@ void MTSort::Run()
 
             Triggered_event event(entries.first, entries.first[entries.second]);
             hm.AddEntry(event);
-            
-            while ( output_queue.try_enqueue(entries) ) if (done) break;    
+
+            while ( !output_queue.try_enqueue(entries) ) if (done) break;    
         }
     }
     is_done = true;
