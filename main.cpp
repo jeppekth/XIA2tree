@@ -20,7 +20,10 @@
 #include "ThreadPool.hpp"
 
 #include <TROOT.h>
-#include <TFileMerger.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TList.h>
+#include <TKey.h>
 
 std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progress)
 {
@@ -42,7 +45,7 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     if ( options.tree.value() ) {
         auto outname = options.output.value();
         outname = outname.substr(0, outname.find_last_of('.'));
-        tree_file = outname + "_tree.root";
+        tree_file = outname + ".root";
         hist_file = outname + "_hist.root";
     } else {
         hist_file = options.output.value();
@@ -72,7 +75,7 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     pool.AddTask(&splitter);
     pool.AddTask(triggers.GetNewTrigger());
 
-    for ( int i = 0 ; i < 8 ; ++i ){
+    for ( int i = 0 ; i < 4 ; ++i ){
         pool.AddTask(sorters.GetNewSorter());
     }
 
@@ -84,6 +87,8 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
         std::cerr << "Got exception: " << ex.what() << std::endl;
     }
 
+    delete writer;
+
     Histograms &hm = sorters.GetHistograms();
     RootWriter::Write(hm, hist_file.c_str()/*, nullptr, "UPDATE"*/);
     auto root_files = sorters.GetTreeFiles();
@@ -93,19 +98,23 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
 
 void MergeFiles(std::string &output_file, const std::vector<std::string> &files)
 {
+    TFile histFile(files.back().c_str(), "READ");
+    TFile outFile(output_file.c_str(), "UPDATE");
+    TList *histKeys = histFile.GetListOfKeys();
+    
+    TObject *object;
+
+    for (TObject *objKey : *histKeys)
     {
-        TFileMerger merger;
-        merger.OutputFile(output_file.c_str());
-        for (auto &file: files) {
-            merger.AddFile(file.c_str(), true);
-        }
-        merger.Merge();
+        TKey *key = dynamic_cast<TKey*>(objKey);
+        object = key->ReadObj();
+        outFile.WriteObject(object, object->GetName());
     }
-    // We can now delete all the files
-    for ( auto &file : files ){
-        std::cout << "Deleting file " << file << std::endl;
-        system(std::string("rm " + file).c_str());
-    }
+
+    outFile.Close();
+    histFile.Close();
+
+    remove(files.back().c_str());
 }
 
 int main(int argc, char *argv[])
@@ -124,7 +133,7 @@ int main(int argc, char *argv[])
         return 0;
     else if ( files.size() > 1 ) {
         // auto spinner = progress.FinishSort(options.output.value());
-        //MergeFiles(options.output.value(), files);
+        MergeFiles(options.output.value(), files);
         // spinner.Finish();
     } else if ( files.empty() )
         return 1;

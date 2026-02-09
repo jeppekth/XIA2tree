@@ -142,6 +142,7 @@ namespace Task {
             ~TTreeManager(){
                 file.Write();
                 file.Close();
+                std::cout << file.GetName() << " closed" << std::endl;
             }
 
             inline void Fill(const Triggered_event &event)
