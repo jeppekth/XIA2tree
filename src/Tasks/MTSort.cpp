@@ -79,6 +79,7 @@ void Detector_Histograms_t::Flush()
 HistManager::HistManager(ThreadSafeHistograms &histograms, const OCL::UserConfiguration &user_config, const char *custom_sort)
         : configuration( user_config )
         , labr( histograms, "labr", NUM_LABR_DETECTORS )
+        , qint ( histograms, "qint")
        , userSort( histograms, configuration, custom_sort )
 {
 }
@@ -87,12 +88,19 @@ Detector_Histograms_t *HistManager::GetSpec(const DetectorType &type)
 {
     switch ( type ) {
         case DetectorType::labr : return &labr;
+        case DetectorType::qint : return &qint;
         default : return nullptr;
     }
 }
 
 void HistManager::AddEntry(Triggered_event &buffer)
 {
+    if (buffer.GetEntries().front().type == DetectorType::qint)
+    {
+        for (Entry_t entry : buffer.GetEntries()) GetSpec(DetectorType::qint)->Fill(entry);
+        return;
+    }
+
     auto trigger = buffer.GetTrigger();
 
     // For now, we will discard events with bad CFD
@@ -131,7 +139,7 @@ void MTSort::Run()
     while ( !done ){
 
         if ( input_queue.wait_dequeue_timed(entries, std::chrono::seconds(1)) ){
-            if ( entries.second == -1 ){
+            if ( entries.second == -1 || entries.second == -2){
                 Triggered_event event(entries.first);
                 hm.AddEntry(event);
             }
