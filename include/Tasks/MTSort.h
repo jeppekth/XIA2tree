@@ -52,14 +52,14 @@ namespace Task {
 
         void Fill(const Entry_t &word) {freq.Fill(double(word.timestamp) / 10e9); }
         void Flush() { freq.force_flush(); }
-    }
+    };
 
     class HistManager {
     private:
         const OCL::UserConfiguration configuration;
 
         Detector_Histograms_t labr;
-        Detector_Histograms_t qint;
+        Charge_Integrator_Histograms_t qint;
 
         UserSortManager userSort;
 

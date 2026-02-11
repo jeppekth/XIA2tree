@@ -150,9 +150,8 @@ void STrigger::Run()
             {
                 if (input.at(i).type == DetectorType::qint)
                 {
-                    qintIndex.push_back(i);
                     qintEntries.push_back(qintEntries.at(i));
-                    input.erase(i);
+                    input.erase(input.begin() + i);
                 }
             }
 
