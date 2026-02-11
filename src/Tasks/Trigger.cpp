@@ -144,6 +144,24 @@ void STrigger::Run()
     while ( !done ){
 
         if ( input_queue.wait_dequeue_timed(input, std::chrono::seconds(1)) ){
+            
+            std::vector<Entry_t> qintEntries;
+            for (int i = input.size() - 1; i >= 0; i--)
+            {
+                if (input.at(i).type == DetectorType::qint)
+                {
+                    qintIndex.push_back(i);
+                    qintEntries.push_back(qintEntries.at(i));
+                    input.erase(i);
+                }
+            }
+
+
+            if (qintEntries.size())
+            {
+                std::pair<std::vector<Entry_t>, int> evt = std::make_pair(qintEntries, -2);
+                while ( !output_queue.try_enqueue(evt) ) {};
+            }
 
             if ( sort_type == CLI::sort_type::gap ){
                 // Check if there is an entry that satisfies the trigger
