@@ -72,6 +72,8 @@ namespace OCL {
             switch ( type ) {
                 case labr:
                     return true;
+                case qint:
+                    return true;
                 default:
                     return false;
             }
