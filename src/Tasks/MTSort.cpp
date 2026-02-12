@@ -80,7 +80,7 @@ HistManager::HistManager(ThreadSafeHistograms &histograms, const OCL::UserConfig
         : configuration( user_config )
         , labr( histograms, "labr", NUM_LABR_DETECTORS )
         , qint ( histograms, "qint")
-       , userSort( histograms, configuration, custom_sort )
+        , userSort( histograms, configuration, custom_sort )
 {
 }
 
@@ -88,7 +88,6 @@ Detector_Histograms_t *HistManager::GetSpec(const DetectorType &type)
 {
     switch ( type ) {
         case DetectorType::labr : return &labr;
-        case DetectorType::qint : return &qint;
         default : return nullptr;
     }
 }
@@ -97,7 +96,7 @@ void HistManager::AddEntry(Triggered_event &buffer)
 {
     if (buffer.GetEntries().front().type == DetectorType::qint)
     {
-        for (Entry_t entry : buffer.GetEntries()) GetSpec(DetectorType::qint)->Fill(entry);
+        for (Entry_t entry : buffer.GetEntries()) GetQIntSpec()->Fill(entry);
         return;
     }
 

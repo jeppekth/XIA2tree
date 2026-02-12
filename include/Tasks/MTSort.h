@@ -64,6 +64,7 @@ namespace Task {
         UserSortManager userSort;
 
         Detector_Histograms_t *GetSpec(const DetectorType &type);
+        Charge_Integrator_Histograms_t *GetQIntSpec() { return &qint; }
 
     public:
         HistManager(ThreadSafeHistograms &histograms, const OCL::UserConfiguration &configuration,
