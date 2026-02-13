@@ -79,7 +79,7 @@ void Detector_Histograms_t::Flush()
 HistManager::HistManager(ThreadSafeHistograms &histograms, const OCL::UserConfiguration &user_config, const char *custom_sort)
         : configuration( user_config )
         , labr( histograms, "labr", NUM_LABR_DETECTORS )
-        , qint ( histograms, "qint")
+        , freq ( histograms.Create1D("freq", "Frequency", 65536, 0, 65536, "Time [10s]"))
         , userSort( histograms, configuration, custom_sort )
 {
 }
@@ -96,7 +96,7 @@ void HistManager::AddEntry(Triggered_event &buffer)
 {
     if (buffer.GetEntries().front().type == DetectorType::qint)
     {
-        for (Entry_t entry : buffer.GetEntries()) GetQIntSpec()->Fill(entry);
+        for (Entry_t& entry : buffer.GetEntries()) freq.Fill(double(((double) entry.timestamp) / (double) 10e9 ));
         return;
     }
 
@@ -121,6 +121,8 @@ void HistManager::Flush()
         GetSpec(type)->Flush();
     }
 
+    freq.force_flush();
+
     userSort.Flush();
 }
 
@@ -138,7 +140,7 @@ void MTSort::Run()
     while ( !done ){
 
         if ( input_queue.wait_dequeue_timed(entries, std::chrono::seconds(1)) ){
-            if ( entries.second == -1 || entries.second == -2){
+            if ( entries.second == -1){
                 Triggered_event event(entries.first);
                 hm.AddEntry(event);
             }

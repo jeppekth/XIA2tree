@@ -44,27 +44,16 @@ namespace Task {
 
     };
 
-    struct Charge_Integrator_Histograms_t
-    {
-        ThreadSafeHistogram1D freq;
-
-        Charge_Integrator_Histograms_t(ThreadSafeHistograms &hist, const std::string &name) : freq( hist.Create1D(std::string("freq_"+name), std::string("Frequency " + name), 65536, 0, 65536, "Time [10s]") ){};
-
-        void Fill(const Entry_t &word) {freq.Fill(double(word.timestamp) / 10e9); }
-        void Flush() { freq.force_flush(); }
-    };
-
     class HistManager {
     private:
         const OCL::UserConfiguration configuration;
 
         Detector_Histograms_t labr;
-        Charge_Integrator_Histograms_t qint;
+        ThreadSafeHistogram1D freq;
 
         UserSortManager userSort;
 
         Detector_Histograms_t *GetSpec(const DetectorType &type);
-        Charge_Integrator_Histograms_t *GetQIntSpec() { return &qint; }
 
     public:
         HistManager(ThreadSafeHistograms &histograms, const OCL::UserConfiguration &configuration,

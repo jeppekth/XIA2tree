@@ -144,22 +144,26 @@ void STrigger::Run()
     while ( !done ){
 
         if ( input_queue.wait_dequeue_timed(input, std::chrono::seconds(1)) ){
-            
+
+            std::vector<Entry_t> newInput;
             std::vector<Entry_t> qintEntries;
             for (int i = input.size() - 1; i >= 0; i--)
             {
                 if (input.at(i).type == DetectorType::qint)
                 {
-                    qintEntries.push_back(qintEntries.at(i));
-                    input.erase(input.begin() + i);
+                    qintEntries.push_back(input.at(i));
+                    continue;
                 }
+                
+                newInput.push_back(input.at(i));
             }
-
 
             if (qintEntries.size())
             {
-                std::pair<std::vector<Entry_t>, int> evt = std::make_pair(qintEntries, -2);
+                std::pair<std::vector<Entry_t>, int> evt = std::make_pair(qintEntries, 0);
                 while ( !output_queue.try_enqueue(evt) ) {};
+
+                input = newInput;
             }
 
             if ( sort_type == CLI::sort_type::gap ){
