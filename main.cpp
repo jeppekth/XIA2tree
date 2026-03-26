@@ -15,8 +15,8 @@
 #include "Tasks/Splitter.h"
 #include "Tasks/SplitterSE.h"
 #include "Tasks/Trigger.h"
-#include "Tasks/Sort.h"
 //#include "Tasks/MTSort.h"
+#include "Tasks/Sort.h"
 
 #include "Tools/CommandLineInterface.h"
 #include "Tools/ProgressUI.h"
@@ -69,8 +69,7 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     if ( options.userSort.has_value() )
         user_sort = options.userSort->c_str();
 
-    Task::Sorters sorters(triggers.GetQueue(), userConfig, ( tree_file.empty() ) ? nullptr : tree_file.c_str(), user_sort);
-    Task::TreeWriter *writer = sorters.GetNewTreeWriter();
+    Task::Sorter sorter(trigger.GetQueue(), userConfig, ( tree_file.empty() ) ? nullptr : tree_file.c_str(), user_sort);
 
     ThreadPool<std::thread> pool;
     pool.AddTask(&reader);
@@ -79,12 +78,6 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     pool.AddTask(&splitter);
     pool.AddTask(&trigger);
     pool.AddTask(&sorter);
-
-    for ( int i = 0 ; i < 4 ; ++i ){
-        pool.AddTask(sorters.GetNewSorter());
-    }
-
-    pool.AddTask(writer);
  
     try {
         pool.Wait();
