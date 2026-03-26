@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
-project(XIA2tree VERSION 1.0.0 LANGUAGES C CXX)
+project(XIA2tree VERSION 1.4.0 LANGUAGES C CXX)
+
+# Default to the project version when git information is unavailable
+set(FULL_VERSION "${PROJECT_VERSION}")
+
+option(ENABLE_TESTS "Build and register tests" OFF)
+option(ENABLE_SANITIZERS "Enable all sanetizers on binary" OFF)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 include(cmake/CPM.cmake)
@@ -12,7 +18,7 @@ CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.13.0")
 find_package(Threads REQUIRED)
 find_package(ROOT REQUIRED COMPONENTS RIO Tree Hist)
 
-CPMAddPackage("gh:vetlewi/Histogram@1.3.3")
+CPMAddPackage("gh:vetlewi/Histogram@2.0.0")
 
 add_library(structopt INTERFACE)
 target_include_directories(structopt
@@ -53,11 +59,23 @@ CPMAddPackage(
         VERSION 0.9.6
 )
 
+#CPMAddPackage(
+#        NAME zstr
+#        GITHUB_REPOSITORY mateidavid/zstr
+#        VERSION 1.0.7
+#)
+
 CPMAddPackage(
-        NAME zstr
-        GITHUB_REPOSITORY mateidavid/zstr
-        VERSION 1.0.7
+        NAME cmake-scripts
+        GITHUB_REPOSITORY StableCoder/cmake-scripts
+        GIT_TAG 003c241725972de76e87afc0986209829b9a7d4f
 )
+
+### Setup sanetizers if ON ###
+if ( ENABLE_SANITIZERS )
+    include(${cmake-scripts_SOURCE_DIR}/sanitizers.cmake)
+    add_sanitizer_support(thread)
+endif()
 
 ### Generate version file ###
 configure_file(
@@ -68,10 +86,13 @@ configure_file(
 add_library(XIAfuncs
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Format/event.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/Buffer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/BufferSE.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/Calibrator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/MemoryMap.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/MTSort.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/Sort.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/MTSort.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/Splitter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/SplitterSE.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/Trigger.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Tasks/XIAReader.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/RootInterface/TTreeManager.cpp
@@ -107,7 +128,8 @@ target_include_directories(UserSort
 
 target_link_libraries(UserSort PRIVATE XIAfuncs)
 
-set_target_properties(UserSort PROPERTIES CXX_STANDARD 17)
+set_target_properties(UserSort PROPERTIES CXX_STANDARD 20)
+set_target_properties(UserSort PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_library(OCL::UserSort ALIAS UserSort)
 
 #add_library(ParticleCoincidenceSort MODULE ParticleCoincidenceSort.cpp)
@@ -119,7 +141,7 @@ add_library(OCL::UserSort ALIAS UserSort)
 #add_library(TimingInvestigation MODULE TimingInvestigation.cpp)
 #target_link_libraries(TimingInvestigation PUBLIC OCL::UserSort)
 
-set_target_properties(XIAfuncs PROPERTIES CXX_STANDARD 17)
+set_target_properties(XIAfuncs PROPERTIES CXX_STANDARD 20)
 target_link_libraries(XIAfuncs
     PUBLIC
         OCL::Histogram
@@ -139,7 +161,7 @@ target_link_libraries(XIAfuncs
 #target_link_libraries(TimingInvestigation PRIVATE OCL::Histogram XIAfuncs UserSort)
 
 add_executable(XIA2tree main.cpp)
-set_target_properties(XIA2tree PROPERTIES CXX_STANDARD 17)
+set_target_properties(XIA2tree PROPERTIES CXX_STANDARD 20)
 target_link_libraries(XIA2tree PRIVATE OCL::Histogram UserSort XIAfuncs readerwriterqueue concurrentqueue)
 #add_dependencies(XIA2tree ParticleCoincidenceSort)
 
@@ -147,3 +169,7 @@ include(GNUInstallDirs)
 install(TARGETS XIA2tree
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if(ENABLE_TESTS)
+    add_subdirectory(test)
+endif()

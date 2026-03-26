@@ -5,13 +5,22 @@
 #ifndef XIA2TREE_USERSORT_H
 #define XIA2TREE_USERSORT_H
 
+
+class Histograms;
+class ThreadSafeHistograms;
+
+#ifdef THREADSAFE
+using HistogramsType = ThreadSafeHistograms;
+#else
+using HistogramsType = Histograms;
+#endif // THREADSAFE
+
 class Triggered_event;
 
 class UserSort {
 public:
     virtual ~UserSort() = default;
     virtual void FillEvent(const Triggered_event &event) = 0;
-    virtual void Flush() = 0;
 };
 
 

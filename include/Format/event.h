@@ -53,8 +53,8 @@ public:
     inline T *begin(){ return _begin; }
     inline T *end(){ return _end; }
 
-    inline T *begin() const { return _begin; }
-    inline T *end() const { return _end; }
+    [[nodiscard]] T *begin() const { return _begin; }
+    [[nodiscard]] T *end() const { return _end; }
 
     [[nodiscard]] inline size_t size() const { return _end - _begin; }
 

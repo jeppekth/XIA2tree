@@ -9,6 +9,7 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <Compression.h>
 
 #include <entry.h>
 #include <event.h>
@@ -30,7 +31,7 @@ namespace Task {
             bool cfdfail;
             double cfdcorr;
             unsigned short idx;     //!< Index in list of detectors that the trigger corresponds to.
-            std::vector<uint32_t> qdc;
+            std::array<uint32_t, 8> qdc;
 
         public:
             explicit TriggerEntry(TTree &tree);
@@ -54,7 +55,7 @@ namespace Task {
             unsigned short mult;    //!< Number of entries of the detector type in event    */
             unsigned short ID[MAX_ENTRIES]; //!< ID number of the detector event.           */
             bool finishflag[MAX_ENTRIES];   //!< Pile-up flag   */
-            unsigned short adcvalue[MAX_ENTRIES]; //!< 16-bit ADC reading */
+            unsigned int adcvalue[MAX_ENTRIES]; //!< 16-bit ADC reading */
             //unsigned short cfdvalue[MAX_ENTRIES]; //!< 16-bit CFD result (obmitted for now since this should not be done afterwards...) */
             long long timestamp[MAX_ENTRIES];   //!< Timestamp in ns    */
             double energy[MAX_ENTRIES]; //!< Energy of the event    */
@@ -85,19 +86,10 @@ namespace Task {
                         time[mult] = 0;
                     }
 
-                    for (int i = 0; i < 8; i++) {
-                        
-                        int e;
-                        try
-                        {
-                            e = entry.qdc.at(i);
-                        }
-                        catch (const std::exception& exc)
-                        {
-                            std::cerr << exc.what() << std::endl;
-                            std::cerr << entry.qdc.size() << std::endl;
-                        }
-                        qdc[mult][i] = e;
+                    if ( !entry.qdc.empty() ) {
+                        for (int i = 0; i < 8; ++i) qdc[mult][i] = entry.qdc[i];
+                    } else {
+                        for (int i = 0; i < 8; ++i) qdc[mult][i] = 0;
                     }
 
                     cfdfail[mult] = entry.cfdfail;

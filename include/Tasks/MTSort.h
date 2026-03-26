@@ -79,12 +79,13 @@ namespace Task {
     class MTSort  : public Base
     {
     private:
-        TEventQueue_t &input_queue;
-        TEventQueue_t &output_queue;
+        MTEventQueue_t &input_queue;
+        MTEventQueue_t &output_queue;
         HistManager hm;
+        const OCL::UserConfiguration& userConfig;
 
     public:
-        MTSort(TEventQueue_t &input, TEventQueue_t &output, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config,
+        MTSort(MTEventQueue_t &input, MTEventQueue_t &output, ThreadSafeHistograms &histograms, const OCL::UserConfiguration &config,
                 const char *user_sort = nullptr);
         ~MTSort() override = default;
         void Run() override;
@@ -126,8 +127,8 @@ namespace Task {
     class Sorters
     {
     private:
-        TEventQueue_t &input_queue;
-        TEventQueue_t output_queue;
+        MTEventQueue_t &input_queue;
+        MTEventQueue_t output_queue;
         ThreadSafeHistograms histograms;
         std::vector<MTSort *> sorters;
         const OCL::UserConfiguration &user_config;
@@ -136,7 +137,7 @@ namespace Task {
         std::vector<std::string> tree_files; //! To be returned to the user when everything is said and done.
 
     public:
-        Sorters(TEventQueue_t &input, OCL::UserConfiguration &config, const char *tree_name = nullptr, const char *user_sort = nullptr);
+        Sorters(MTEventQueue_t &input, OCL::UserConfiguration &config, const char *tree_name = nullptr, const char *user_sort = nullptr);
         ~Sorters();
         void flush();
         Histograms &GetHistograms(){

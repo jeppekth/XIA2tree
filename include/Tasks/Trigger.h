@@ -15,16 +15,16 @@ namespace Task {
     {
     private:
         MCEventQueue_t &input_queue;
-        TEventQueue_t output_queue;
+        MTEventQueue_t output_queue;
 
         const double coincidence_time;
         const DetectorType trigger;
-        const bool time_cal;
+        const CLI::sort_type sort_type;
 
     public:
-        Trigger(MCEventQueue_t &input, const double &time = 1500., const DetectorType &trigger = DetectorType::labr, const bool &time_cal = false,
-                const size_t &cap = 65536);
-        TEventQueue_t &GetQueue(){ return output_queue; }
+        Trigger(MCEventQueue_t &input, const double &time = 1500., const DetectorType &trigger = DetectorType::labr,
+                const CLI::sort_type &sort_type = CLI::sort_type::gap);
+        MTEventQueue_t &GetQueue(){ return output_queue; }
 
         void Run() override;
 

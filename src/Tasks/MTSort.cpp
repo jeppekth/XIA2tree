@@ -102,6 +102,12 @@ void HistManager::AddEntry(Triggered_event &buffer)
 
     auto trigger = buffer.GetTrigger();
 
+    // We get the qint and increment the time spectrum.
+    for ( const auto& Qint : buffer.GetDetector(DetectorType::qint) ) {
+        auto time = double(Qint.timestamp) / 1e9; // Convert to second
+        chargeIntegrator.Fill(time);
+    }
+
     // For now, we will discard events with bad CFD
     // We have this req. if we get a trigger
     if ( trigger )
@@ -160,7 +166,7 @@ void MTSort::Flush()
     hm.Flush();
 }
 
-Sorters::Sorters(TEventQueue_t &input, OCL::UserConfiguration &config, const char *tree_name, const char *_user_sort)
+Sorters::Sorters(MTEventQueue_t &input, OCL::UserConfiguration &config, const char *tree_name, const char *_user_sort)
     : input_queue( input )
     , histograms( )
     , sorters( )
@@ -181,6 +187,7 @@ Sorters::~Sorters()
 
 void Sorters::flush()
 {
+    histograms.force_flush();
     for ( auto &v : sorters ){
         v->Flush();
     }

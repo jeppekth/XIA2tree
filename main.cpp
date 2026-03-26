@@ -11,9 +11,12 @@
 #include "Tasks/XIAReader.h"
 #include "Tasks/Calibrator.h"
 #include "Tasks/Buffer.h"
+#include "Tasks/BufferSE.h"
 #include "Tasks/Splitter.h"
+#include "Tasks/SplitterSE.h"
 #include "Tasks/Trigger.h"
-#include "Tasks/MTSort.h"
+#include "Tasks/Sort.h"
+//#include "Tasks/MTSort.h"
 
 #include "Tools/CommandLineInterface.h"
 #include "Tools/ProgressUI.h"
@@ -35,31 +38,32 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
         std::cerr << "Configuration file is missing." << std::endl;
         return {};
     }
-    auto cal = OCL::ConfigManager::FromFile(cal_file);
+    cal_file.close();
+    auto cal = OCL::ConfigManager::FromFile(options.CalibrationFile.value().c_str());
     ParticleRange particleRange( options.RangeFile.value_or("") );
-    auto userConfig = OCL::UserConfiguration::FromFile(cal_file, particleRange);
+    auto userConfig = OCL::UserConfiguration::FromFile(options.CalibrationFile.value().c_str(),
+                                                                options.Trigger.value(),
+                                                                options.sortType.value(), particleRange);
 
     std::string hist_file;
     std::string tree_file;
     std::string conf_file;
+    std::vector<std::string> root_files;
     if ( options.tree.value() ) {
         auto outname = options.output.value();
-        outname = outname.substr(0, outname.find_last_of('.'));
-        tree_file = outname + ".root";
-        hist_file = outname + "_hist.root";
+        tree_file = outname;
+        hist_file = outname;
     } else {
         hist_file = options.output.value();
     }
-    //hist_file = options.output.value();
-    //tree_file = options.output.value();
 
     Task::XIAReader reader(options.input.value(), &progress);
     Task::Calibrator calibrator(cal, reader.GetQueue());
-    Task::Buffer buffer(calibrator.GetQueue());
-    Task::Splitter splitter(buffer.GetQueue(), options.SplitTime.value());
-
-    Task::Triggers triggers(splitter.GetQueue(), options.coincidenceTime.value(),
+    Task::BufferSE buffer(calibrator.GetQueue());
+    Task::SplitterSE splitter(buffer.GetQueue(), options.SplitTime.value());
+    Task::Trigger trigger(splitter.GetQueue(), options.coincidenceTime.value(),
                             options.Trigger.value(), options.sortType.value());
+
 
     const char *user_sort = nullptr;
     if ( options.userSort.has_value() )
@@ -73,7 +77,8 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     pool.AddTask(&calibrator);
     pool.AddTask(&buffer);
     pool.AddTask(&splitter);
-    pool.AddTask(triggers.GetNewTrigger());
+    pool.AddTask(&trigger);
+    pool.AddTask(&sorter);
 
     for ( int i = 0 ; i < 4 ; ++i ){
         pool.AddTask(sorters.GetNewSorter());
@@ -86,12 +91,13 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
     } catch ( const std::exception &ex ){
         std::cerr << "Got exception: " << ex.what() << std::endl;
     }
+    Histograms &hm = sorter.GetHistograms();
+    if ( options.tree.value() ) {
+        RootWriter::Write(hm, hist_file.c_str(), nullptr, "UPDATE");
+    } else {
+        RootWriter::Write(hm, hist_file.c_str()/*, nullptr, "UPDATE"*/);
+    }
 
-    delete writer;
-
-    Histograms &hm = sorters.GetHistograms();
-    RootWriter::Write(hm, hist_file.c_str()/*, nullptr, "UPDATE"*/);
-    auto root_files = sorters.GetTreeFiles();
     root_files.push_back(hist_file);
     return root_files;
 }

@@ -9,7 +9,7 @@ using namespace Task;
 
 
 Splitter::Splitter(EventQueue_t &input, const double &time_gap, const size_t &cap)
-    : input_queue( input ), output_queue( cap ), gap( time_gap ){}
+    : input_queue( input ), output_queue( /*cap*/ ), gap( time_gap ){}
 
 template<typename T>
 T Split(T begin, T end, const double gap)
@@ -30,22 +30,24 @@ T Split(T begin, T end, const double gap)
 
 void Splitter::Run()
 {
+    QueueWorker worker(output_queue);
     std::vector<Entry_t> entries;
-    while ( !done && input_queue.wait_dequeue_timed(entries, std::chrono::seconds(1)) ){
-
+    while ( input_queue.is_not_finish() || !input_queue.empty() ) {
+        if ( !input_queue.try_pop(entries) ) {
+            continue;
+        }
         // Continue pushing to the output queue until all entries has been split.
         auto entries_begin = entries.begin();
         auto entries_end = entries.begin();
         while ( entries_end < entries.end() ){
             entries_end = Split(entries_begin, entries.end(), gap);
             std::vector<Entry_t> split_entries(entries_begin, entries_end);
-            //while ( !output_queue.try_enqueue(std::vector(entries_begin, entries_end)) ){
-            while ( !output_queue.try_enqueue(std::move(split_entries)) ){
-                if ( done )
-                    break;
-            }
+            if (split_entries.empty())
+                continue;
+            output_queue.push(split_entries);
             entries_begin = entries_end;
         }
     }
+    output_queue.mark_as_finish();
     is_done = true;
 }
