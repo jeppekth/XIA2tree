@@ -15,7 +15,7 @@
 #include <event.h>
 
 #ifndef MAX_ENTRIES
-#define MAX_ENTRIES 12
+#define MAX_ENTRIES 64
 #endif // MAX_ENTRIES
 
 namespace Task {
@@ -142,7 +142,7 @@ namespace Task {
                 // Get the lock...
                 if ( event.GetTrigger() )
                     trigger.Fill(event.GetTrigger());
-                for ( auto &type : {DetectorType::labr} ){
+                for ( auto &type : {DetectorType::labr}){
                     GetDet(type)->reset();
                     GetDet(type)->Fill(event.GetDetector(type), event.GetTrigger());
                 }

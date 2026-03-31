@@ -123,7 +123,7 @@ void HistManager::AddEntry(Triggered_event &buffer)
 
 void HistManager::Flush()
 {
-    for ( auto &type : {DetectorType::labr} ){
+    for ( auto &type : {DetectorType::labr, DetectorType::qint} ){
         GetSpec(type)->Flush();
     }
 

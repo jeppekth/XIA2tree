@@ -92,45 +92,6 @@ void convert_array(const YAML::Node &node, double data[]) {
     }
 }
 
-AnalysisParameters_t::AnalysisParameters_t(const YAML::Node &userConfig){
-    // Try to find the Excitation curve setup
-
-    try {
-        convert_array(userConfig["analysis"]["a0"], ex_a0);
-        convert_array(userConfig["analysis"]["a1"], ex_a1);
-        convert_array(userConfig["analysis"]["a2"], ex_a2);
-    } catch (std::exception &e) { // The error is not so severe that we cannot live with it. Just ignore for now...
-        //std::cerr << e.what() << std::endl;
-        std::cerr << "Could not read excitation curves. Got error '" << e.what() << "'" << std::endl;
-        const double a0[] = {15.482874, 15.482970, 15.482859, 15.482356, 15.481656, 15.480574, 15.479027, 15.477125};
-        const double a1[] = {-1.033612, -1.032484, -1.031292, -1.030005, -1.028671, -1.027260, -1.025767, -1.024225};
-        const double a2[] = {0.000123, 0.000097, 0.000070, 0.000040, 0.000008, -0.000025, -0.000061, -0.000097};
-        for ( int i = 0 ; i < 8 ; ++i) {
-            ex_a0[i] = a0[i];
-            ex_a1[i] = a1[i];
-            ex_a2[i] = a2[i];
-        }
-    }
-
-    try {
-        prompt = {userConfig["analysis"]["prompt"]["lhs"].as<double>(),userConfig["analysis"]["prompt"]["rhs"].as<double>()};
-        background = {userConfig["analysis"]["background"]["lhs"].as<double>(),userConfig["analysis"]["background"]["rhs"].as<double>()};
-    } catch (std::exception &e) {
-        std::cerr << "Could not read time gates. Got error '" << e.what() << "'" << std::endl;
-        prompt = {-5., 5.};
-        background = {58.5-5, 58.5+5};
-    }
-
-    try {
-        particle_gate = {userConfig["analysis"]["particle_gate"]["lhs"].as<double>(),userConfig["analysis"]["particle_gate"]["rhs"].as<double>()};
-    } catch (std::exception &e) {
-        std::cerr << "Could not read particle gate. Got error '" << e.what() << "'" << std::endl;
-        particle_gate = {110, 160};
-    }
-    return;
-}
-
-
 UserConfiguration UserConfiguration::FromFile(const char *file, const DetectorType& trig, const CLI::sort_type& stype, const ParticleRange &r)
 {
     return UserConfiguration(YAML::LoadFile(file), trig, stype, r);
@@ -144,7 +105,6 @@ UserConfiguration UserConfiguration::FromFile(std::istream &s, const DetectorTyp
 UserConfiguration::UserConfiguration(const YAML::Node &_userConfig, const DetectorType& trig, const CLI::sort_type& stype, const ParticleRange &_range)
     : userConfig( _userConfig )
     , range( _range )
-    , analysisParameters( _userConfig )
     , trigger( trig )
     , sortType( stype )
 {

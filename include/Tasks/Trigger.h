@@ -43,7 +43,7 @@ namespace Task {
     public:
         STrigger(MCEventQueue_t &input, TEventQueue_t &output,
                 const double &time = 1500., const DetectorType &trigger = DetectorType::labr,
-                const CLI::sort_type &sort_type = CLI::sort_type::coincidence);
+                const CLI::sort_type &sort_type = CLI::sort_type::gap);
 
         void Run() override;
 
@@ -63,7 +63,7 @@ namespace Task {
 
     public:
         Triggers(MCEventQueue_t &input, const double &time = 1500., const DetectorType &trigger = DetectorType::labr,
-                 const CLI::sort_type &sort_type = CLI::sort_type::coincidence, const size_t &cap = 65536);
+                 const CLI::sort_type &sort_type = CLI::sort_type::gap, const size_t &cap = 65536);
         ~Triggers();
         TEventQueue_t &GetQueue(){ return output_queue; }
 

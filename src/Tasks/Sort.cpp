@@ -44,13 +44,7 @@ void Detector_Histograms_t::Fill(const subvector<Entry_t> &subvec,
 HistManager::HistManager(Histograms &histograms, const OCL::UserConfiguration &user_config, const char *custom_sort)
         : configuration( user_config )
         , labr( histograms, "labr", NUM_LABR_DETECTORS )
-        , labr_energy_gated( histograms.Create2D("labr_energy_gated", "Uncalibrated LaBr3 - particle gated",
-                                            65536, 0, 65536, "Energy [ch]",
-                                                 NUM_LABR_DETECTORS, 0, NUM_LABR_DETECTORS, "Detector ID") )
-        , labr_energy_cal_gated( histograms.Create2D("labr_energy_cal_gated", "Calibrated LaBr3 - particle gated",
-                                            32768, 0, 32768, "Energy [keV]",
-                                            NUM_LABR_DETECTORS, 0, NUM_LABR_DETECTORS, "Detector ID") )
-        , chargeIntegrator( histograms.Create1D("chargeIntegrator", "Charge integrator", 86400, 0, 86400, "Time [ns]") )
+        , chargeIntegrator( histograms.Create1D("chargeIntegrator", "Charge integrator", 86400, 0, 86400, "Time [s]") )
         , userSort( histograms, configuration, custom_sort )
 {
 }

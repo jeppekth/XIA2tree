@@ -11,6 +11,7 @@ Triggered_event::Triggered_event(const Triggered_event &event)
     , trigger( event.trigger )
     , type_bounds{ std::pair{invalid, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{labr, subvector<Entry_t>{nullptr, nullptr}},
+                   std::pair{qint, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{any, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{unused, subvector<Entry_t>{nullptr, nullptr}}}
 {
@@ -22,6 +23,7 @@ Triggered_event::Triggered_event(const std::vector<Entry_t> &_entries)
     , trigger( {DetectorType::unused, uint16_t(-1), 0, 0, -1, true, -1e9, -1e9, true} )
     , type_bounds{ std::pair{invalid, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{labr, subvector<Entry_t>{nullptr, nullptr}},
+                   std::pair{qint, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{any, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{unused, subvector<Entry_t>{nullptr, nullptr}}}
 {
@@ -33,6 +35,7 @@ Triggered_event::Triggered_event(const std::vector<Entry_t> &_entries, const Ent
     , trigger( _trigger )
     , type_bounds{ std::pair{invalid, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{labr, subvector<Entry_t>{nullptr, nullptr}},
+                   std::pair{qint, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{any, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{unused, subvector<Entry_t>{nullptr, nullptr}}}
 {
@@ -45,6 +48,7 @@ Triggered_event::Triggered_event(std::vector<Entry_t> &&_entries, const Entry_t 
     , trigger( _trigger )
     , type_bounds{ std::pair{invalid, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{labr, subvector<Entry_t>{nullptr, nullptr}},
+                   std::pair{qint, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{any, subvector<Entry_t>{nullptr, nullptr}},
                    std::pair{unused, subvector<Entry_t>{nullptr, nullptr}}}
 {
@@ -61,7 +65,7 @@ void Triggered_event::index()
     });
 
     // Now we will sort through the detector types and fill our mapping for fast lookup later.
-    for ( auto &type : {DetectorType::labr} ){
+    for ( auto &type : {DetectorType::labr, DetectorType::qint} ){
         auto begin = std::find_if(entries.begin(), entries.end(), [&type](const auto &c){ return c.type == type; });
         auto end = std::find_if_not(begin, entries.end(), [&type](const auto &c){ return c.type == type; });
         std::sort(begin, end, [](const auto &lhs, const auto &rhs){

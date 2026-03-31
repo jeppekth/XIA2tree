@@ -47,8 +47,6 @@ namespace Task {
 
         Detector_Histograms_t labr;
 
-       
-        Histogram2Dp labr_energy_gated, labr_energy_cal_gated;
         Histogram1Dp chargeIntegrator;
         UserSortManager userSort;
 
