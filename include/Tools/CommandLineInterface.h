@@ -34,7 +34,7 @@ namespace CLI {
         std::optional<double> coincidenceTime = 100;
         std::optional<double> SplitTime = 1500;
         std::optional<bool> tree = false;
-        std::optional<sort_type> sortType = sort_type::coincidence;
+        std::optional<sort_type> sortType = sort_type::gap;
         std::optional<DetectorType> Trigger = DetectorType::labr;
     };
 
