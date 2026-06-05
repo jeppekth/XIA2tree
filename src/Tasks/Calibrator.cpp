@@ -31,6 +31,7 @@ void Calibrator::Run()
             continue;
         }
         Entry_t entry = calibration(xia);
+        if (entry.type == DetectorType::labr && entry.energy < 300) continue;
         output_queue.push(entry);
     }
     output_queue.mark_as_finish();
