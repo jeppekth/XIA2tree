@@ -2,6 +2,9 @@
 #include <fstream>
 #include <thread>
 #include <signal.h>
+#include <streambuf>
+#include <string>
+
 
 #include "PhysicalParam/ConfigManager.h"
 #include "PhysicalParam/ParticleRange.h"
@@ -38,6 +41,8 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
         std::cerr << "Configuration file is missing." << std::endl;
         return {};
     }
+    std::string cal_file_content((std::istreambuf_iterator<char>(cal_file)),
+                       std::istreambuf_iterator<char>());
     cal_file.close();
     auto cal = OCL::ConfigManager::FromFile(options.CalibrationFile.value().c_str());
     ParticleRange particleRange( options.RangeFile.value_or("") );
@@ -89,6 +94,14 @@ std::vector<std::string> RunSort(const CLI::Options &options, ProgressUI &progre
         RootWriter::Write(hm, hist_file.c_str(), nullptr, "UPDATE");
     } else {
         RootWriter::Write(hm, hist_file.c_str()/*, nullptr, "UPDATE"*/);
+    }
+
+    TFile* outfile = new TFile(hist_file.c_str(), "UPDATE");
+    if (!outfile) std::cout << "Unable to write config to " << hist_file << std::endl;
+    else 
+    {
+        outfile->WriteObject(new TString(cal_file_content.c_str()), "config");
+        outfile->Close();
     }
 
     root_files.push_back(hist_file);
